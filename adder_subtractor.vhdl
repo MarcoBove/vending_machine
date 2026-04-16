@@ -2,6 +2,9 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
+
+-- aggiungere comparatore
+-- problema sincronizzare a colpi di clock con la fsm
 entity adder_subtractor is
     generic ( 
         DATA_WIDTH : INTEGER := 9

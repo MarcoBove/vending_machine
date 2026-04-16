@@ -2,6 +2,24 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
+
+    -------------------------------------------------------------------------
+    -- INGRESSI
+    -- uscita del registro somma-sottrazione
+    
+    -------------------------------------------------------------------------
+
+-- difficoltà temporizzare adder con la fsm
+-- deve leggere solo dalla rom
+-- riscrivere stati 
+-- valutare se passare a mealy
+
+    -------------------------------------------------------------------------
+    -- USCITE
+    -- operation dell'adder
+    
+    -------------------------------------------------------------------------
+
 entity finite_state_machine is
     generic (
         -- Range massimo credito (es. fino a 500c = 5 euro)
@@ -19,7 +37,7 @@ entity finite_state_machine is
         coin_2e_p       : in  std_logic; 
 
 
-        -- Ingressi: Tastierino Numerico (0..3 
+        -- Ingressi: Tastierino Numerico (0..9) e  OK e C
         btn_num         : in  STD_LOGIC_VECTOR(BUTTON_NUM-1 downto 0); -- Codice prodotto
         btn_ok_p        : in  std_logic; -- Tasto OK (conferma)
         btn_c_p         : in  std_logic; -- Tasto C (cancella)
@@ -38,12 +56,7 @@ architecture Behavioral of finite_state_machine is
     type state_type is (
         S_WAIT, 
         S_SELECT_PRODUCT
-        );
-
-
-    --instanziare componente ROM
-
-    
+        );    
 
     signal price_val : integer;
 
@@ -61,17 +74,6 @@ architecture Behavioral of finite_state_machine is
     signal sig_credit_is_zero  : std_logic; -- '1' se credito = 0
 
     signal btn_num_press_p : std_logic; -- Pulsante numerico premuto (qualunque numero)
-
-
-    component adder_subtractor
-        port (
-            a       : in  integer range 0 to MAX_CREDIT;
-            b       : in  integer range 0 to MAX_CREDIT;
-            result : out integer range 0 to MAX_CREDIT;
-            operation : in std_logic -- '0' per addizione, '1' per sottrazione
-        );
-    end component;
-
 
 begin
 
@@ -107,10 +109,7 @@ begin
                
 
             when S_SELECT_PRODUCT =>
-
-            
-                
-                
+     
                 if (btn_ok_p = '1' and sig_credit_lt_price = '1') then
                     next_state <= S_WAIT;
                
@@ -120,7 +119,6 @@ begin
                     next_state <= S_WAIT;
                 end if;
 
-            
 
             when others => -- CASO IN CUI DA WAIT PASSIAMO A CHANGES ATTRAVERSO 'C' (cancella tutto e da il resto)
                 next_state <= S_WAIT;
@@ -158,6 +156,11 @@ begin
         end case;
     end process;
 
+
+
+    -------------------------------------------------------------------------
+    -- PROCESSO 3: MEMORY PROCESS 
+    -------------------------------------------------------------------------
 
     p_reg_proc : process(CLK, aresetn)
     begin
