@@ -1,7 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
-entity data_gater is
+entity output_gate is
     generic (
         DATA_WIDTH : integer := 9
     );
@@ -10,9 +10,9 @@ entity data_gater is
         enable   : in  STD_LOGIC; -- Controllato dalla FSM
         data_out : out STD_LOGIC_VECTOR(DATA_WIDTH-1 downto 0)
     );
-end data_gater;
+end output_gate;
 
-architecture Behavioral of data_gater is
+architecture Behavioral of output_gate is
 begin
     data_out <= data_in when enable = '1' else (others => '0');
 end Behavioral;

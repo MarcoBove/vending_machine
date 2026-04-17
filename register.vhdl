@@ -9,6 +9,8 @@ entity register is
     port (
         clk      : in  STD_LOGIC;
         areset_n : in  STD_LOGIC;
+        en       : in  STD_LOGIC;
+        clr      : in  STD_LOGIC;
         d        : in  STD_LOGIC_VECTOR(DATA_WIDTH-1 downto 0);
         q        : out STD_LOGIC_VECTOR(DATA_WIDTH-1 downto 0)
     );
@@ -25,7 +27,10 @@ begin
             q <= RESET_VAL;
         -- Synchronous data propagation
         elsif rising_edge(clk) then
-            q <= d;
+            if(clr ='1') then
+                q <= (others => '0');
+            elsif(en = '1') then
+                q <= d;
         end if;
     end process;
 end behavioural;

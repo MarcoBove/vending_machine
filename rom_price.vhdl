@@ -16,7 +16,7 @@ end entity;
 architecture Behavioral of ROM_price is
 
     -- ROM con valori in unsigned
-    type rom_price_type is array (0 to DATA_WIDTH-1) of unsigned(DATA_WIDTH-1 downto 0);
+    type rom_price_type is array (0 to DATA_WIDTH) of unsigned(DATA_WIDTH downto 0);
 
     constant PRICE_VAL : rom_price_type := (
         0 => to_unsigned(50,  DATA_WIDTH), --acqua
@@ -32,9 +32,8 @@ architecture Behavioral of ROM_price is
     );
 
 begin
-
     -- converto button in indice intero
-    price <= std_logic_vector(PRICE_VAL(to_integer(unsigned(button))));
+    price_o <= std_logic_vector(PRICE_VAL(to_integer(unsigned(button_i))));
 
 end architecture;
 

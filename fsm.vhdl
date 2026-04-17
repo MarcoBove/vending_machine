@@ -12,7 +12,8 @@ use IEEE.NUMERIC_STD.ALL;
 -- difficoltà temporizzare adder con la fsm
 -- deve leggere solo dalla rom
 -- riscrivere stati 
--- valutare se passare a mealy
+-- valutare se passare a moore
+-- 
 
     -------------------------------------------------------------------------
     -- USCITE
@@ -32,21 +33,32 @@ entity finite_state_machine is
         
         -- Ingressi: Monete 
         -- Le monete possono essere 50 centesimi, 100 centesimi (1 euro) o 200 centesimi (2 euro)
-        coin_50c_p      : in  std_logic; 
-        coin_1e_p       : in  std_logic; 
-        coin_2e_p       : in  std_logic; 
+        coin_50c_p_in      : in  std_logic; 
+        coin_1e_p_in       : in  std_logic; 
+        coin_2e_p_in       : in  std_logic; 
 
 
         -- Ingressi: Tastierino Numerico (0..9) e  OK e C
-        btn_num         : in  STD_LOGIC_VECTOR(BUTTON_NUM-1 downto 0); -- Codice prodotto
-        btn_ok_p        : in  std_logic; -- Tasto OK (conferma)
-        btn_c_p         : in  std_logic; -- Tasto C (cancella)
+        btn_num_in         : in  STD_LOGIC_VECTOR(BUTTON_NUM-1 downto 0); -- Codice prodotto
+        btn_ok_p_in        : in  std_logic; -- Tasto OK (conferma)
+        btn_c_p_in         : in  std_logic; -- Tasto C (cancella)
+
+
+        -- Ingressi controllo
+        credit_ok_in     : in std_logic; -- uscita comparatore
+
         
         -- Uscite 
-        current_credit_out      : out STD_LOGIC_VECTOR(MAX_CREDIT-1 downto 0);
         credit_insufficient_out : out std_logic;
-        dispense_item_out       : out STD_LOGIC_VECTOR(MAX_CREDIT-1 downto 0);
-        dispense_change_out     : out STD_LOGIC_VECTOR(MAX_CREDIT-1 downto 0);
+
+        --Uscite controllo
+        update_credit_out : out std_logic; --se è stato aggiornato il credito
+        clear_credit_out : out std_logic; --azzera il credito
+        add_sup_operation_out : out std_logic; --seleziona somma o sottrazione
+        mux_sel_out : out std_logic; --seleziona moneta o prezzo
+        en_dispense_item_out : out std_logic; --eroga se è 1
+        en_change_out : out std_logic; --dai resto se è 1
+        
     );
 end entity;
 
