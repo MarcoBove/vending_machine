@@ -7,12 +7,12 @@ entity output_gate is
     );
     port (
         data_in  : in  STD_LOGIC_VECTOR(DATA_WIDTH-1 downto 0);
-        enable   : in  STD_LOGIC; -- Controllato dalla FSM
+        en   : in  STD_LOGIC; -- Controllato dalla FSM
         data_out : out STD_LOGIC_VECTOR(DATA_WIDTH-1 downto 0)
     );
 end output_gate;
 
 architecture Behavioral of output_gate is
 begin
-    data_out <= data_in when enable = '1' else (others => '0');
+    data_out <= data_in when en = '1' else (others => '0');
 end Behavioral;

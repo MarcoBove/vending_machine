@@ -29,7 +29,7 @@ entity finite_state_machine is
     );
     port (
         CLK             : in  std_logic;
-        aresetn         : in  std_logic; -- Reset asincrono attivo basso
+        areset_n         : in  std_logic; -- Reset asincrono attivo basso
         
         -- Ingressi: Monete 
         -- Le monete possono essere 50 centesimi, 100 centesimi (1 euro) o 200 centesimi (2 euro)

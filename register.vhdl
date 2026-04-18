@@ -1,7 +1,7 @@
 library ieee;
 use ieee.STD_LOGIC_1164.all;
 
-entity register is
+entity register_en_clr is
     generic (
         DATA_WIDTH : integer := 9; --500 sono 9 bit
         RESET_VAL  : STD_LOGIC_VECTOR(DATA_WIDTH-1 downto 0) := (others => '0')
@@ -14,9 +14,9 @@ entity register is
         d        : in  STD_LOGIC_VECTOR(DATA_WIDTH-1 downto 0);
         q        : out STD_LOGIC_VECTOR(DATA_WIDTH-1 downto 0)
     );
-end register;
+end register_en_clr;
 
-architecture behavioural of register is
+architecture behavioural of register_en_clr is
 begin
     -- behavioural process sensitive to clk and areset_n
     process (clk, areset_n)
@@ -31,6 +31,8 @@ begin
                 q <= (others => '0');
             elsif(en = '1') then
                 q <= d;
+            end if;
         end if;
     end process;
+
 end behavioural;
