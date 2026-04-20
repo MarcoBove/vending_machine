@@ -5,10 +5,10 @@ use IEEE.NUMERIC_STD.ALL;
 entity ROM_price is
     generic(
         DATA_WIDTH : integer := 9; -- fino a 500 centesimi
-        BUTTON_NUM : integer := 4  -- pulsanti 0..9
+        BUTTON_NUM_BIT : integer := 4  -- pulsanti 0..9
     );
     port (
-        button_i : in  STD_LOGIC_VECTOR(BUTTON_NUM-1 downto 0);
+        button_i : in  STD_LOGIC_VECTOR(BUTTON_NUM_BIT-1 downto 0);
         price_o  : out STD_LOGIC_VECTOR(DATA_WIDTH-1 downto 0)
     );
 end entity;

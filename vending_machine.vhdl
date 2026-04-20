@@ -5,9 +5,8 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity vending_machine is
     generic (
-        -- Range massimo credito (es. fino a 500c = 5 euro)
-        MAX_CREDIT : integer := 9;
-        BUTTON_NUM : integer := 4
+        MAX_CREDIT_BIT : integer := 9;  
+        BUTTON_NUM_BIT : integer := 4
     );
     port (
         CLK             : in  std_logic;
@@ -15,21 +14,21 @@ entity vending_machine is
         
         -- Ingressi: Monete 
         -- Le monete possono essere 50 centesimi, 100 centesimi (1 euro) o 200 centesimi (2 euro)
-        coin_50c_p      : in  std_logic; 
-        coin_1e_p       : in  std_logic; 
-        coin_2e_p       : in  std_logic; 
+        coin_50c_in      : in  std_logic; 
+        coin_1e_in       : in  std_logic; 
+        coin_2e_in       : in  std_logic; 
 
 
         -- Ingressi: Tastierino Numerico 
-        btn_num         : in  STD_LOGIC_VECTOR(BUTTON_NUM-1 downto 0);
-        btn_ok_p        : in  std_logic; -- Tasto OK (conferma)
-        btn_c_p         : in  std_logic; -- Tasto C (cancella)
+        btn_num_in         : in  STD_LOGIC_VECTOR(BUTTON_NUM-1 downto 0);
+        btn_ok_in        : in  std_logic; -- Tasto OK (conferma)
+        btn_c_in         : in  std_logic; -- Tasto C (cancella)
         
         -- Uscite 
-        current_credit_out      : out STD_LOGIC_VECTOR(MAX_CREDIT-1 downto 0);
+        current_credit_out      : out STD_LOGIC_VECTOR(MAX_CREDIT_BIT-1 downto 0);
         credit_insufficient_out : out std_logic;
-        dispense_item_out       : out  STD_LOGIC_VECTOR(MAX_CREDIT-1 downto 0);
-        dispense_change_out     : out  STD_LOGIC_VECTOR(MAX_CREDIT-1 downto 0);
+        dispense_item_out       : out  STD_LOGIC_VECTOR(MAX_CREDIT_BIT-1 downto 0);
+        dispense_change_out     : out  STD_LOGIC_VECTOR(MAX_CREDIT_BIT-1 downto 0);
     );
 end vending_machine;
 
@@ -37,20 +36,21 @@ end vending_machine;
 architecture Structural of vending_machine is
     
     --segnali interni
-    signal credit_ok_sig                    : STD_LOGIC;
+    signal credit_ok                    : STD_LOGIC;   
 
-    signal fsm_update_credit_sig            : STD_LOGIC;               
-    signal fsm_clear_credit_sig             : STD_LOGIC;                    
-    signal fsm_add_sup_operation_sig        : STD_LOGIC;    
-    signal fsm_mux_sel_sig                  : STD_LOGIC;                       
-    signal fsm_en_dispense_item_sig         : STD_LOGIC;                
-    signal fsm_en_change_sig                : STD_LOGIC;
+    --uscite FSM
+    signal fsm_update_credit            : STD_LOGIC;               
+    signal fsm_clear_credit             : STD_LOGIC;                    
+    signal fsm_add_sub_operation        : STD_LOGIC;    
+    signal fsm_mux_sel                  : STD_LOGIC;                       
+    signal fsm_en_dispense_item         : STD_LOGIC;                
+    signal fsm_en_change                : STD_LOGIC;
 
-    signal current_credit_sig           : STD_LOGIC_VECTOR(MAX_CREDIT-1 downto 0);
-    signal adder_result_sig             : STD_LOGIC_VECTOR(MAX_CREDIT-1 downto 0);
-    signal adder_B_sig                  : STD_LOGIC_VECTOR(MAX_CREDIT-1 downto 0);
-    signal coin_val_sig                 : STD_LOGIC_VECTOR(MAX_CREDIT-1 downto 0);
-    signal price_val_sig                : STD_LOGIC_VECTOR(MAX_CREDIT-1 downto 0);
+    signal current_credit           : STD_LOGIC_VECTOR(MAX_CREDIT_BIT-1 downto 0);
+    signal adder_result             : STD_LOGIC_VECTOR(MAX_CREDIT_BIT-1 downto 0);
+    signal adder_B                  : STD_LOGIC_VECTOR(MAX_CREDIT_BIT-1 downto 0);
+    signal coin_val                 : STD_LOGIC_VECTOR(MAX_CREDIT_BIT-1 downto 0);
+    signal price_val                : STD_LOGIC_VECTOR(MAX_CREDIT_BIT-1 downto 0);
     
 
 
@@ -73,10 +73,10 @@ architecture Structural of vending_machine is
     component ROM_price is
         generic(
             DATA_WIDTH : integer := 9; -- fino a 500 centesimi
-            BUTTON_NUM : integer := 4  -- pulsanti 0..9
+            BUTTON_NUM_BIT : integer := 4  -- pulsanti 0..9
         );
         port (
-            button_i : in  STD_LOGIC_VECTOR(BUTTON_NUM-1 downto 0);
+            button_i : in  STD_LOGIC_VECTOR(BUTTON_NUM_BIT-1 downto 0);
             price_o  : out STD_LOGIC_VECTOR(DATA_WIDTH-1 downto 0)
         );
         end component;
@@ -86,8 +86,8 @@ architecture Structural of vending_machine is
     
         generic (
         -- Range massimo credito (es. fino a 500c = 5 euro)
-            MAX_CREDIT : integer := 9;
-            BUTTON_NUM : integer := 4
+            MAX_CREDIT_BIT : integer := 9;
+            BUTTON_NUM_BIT : integer := 4
         );
         port (
                 CLK             : in  std_logic;
@@ -95,15 +95,15 @@ architecture Structural of vending_machine is
         
             -- Ingressi: Monete 
             -- Le monete possono essere 50 centesimi, 100 centesimi (1 euro) o 200 centesimi (2 euro)
-            coin_50c_p_in      : in  std_logic; 
-            coin_1e_p_in       : in  std_logic; 
-            coin_2e_p_in       : in  std_logic; 
+            coin_50c_in      : in  std_logic; 
+            coin_1e_in       : in  std_logic; 
+            coin_2e_in       : in  std_logic; 
 
 
             -- Ingressi: Tastierino Numerico (0..9) e  OK e C
-            btn_num_in         : in  STD_LOGIC_VECTOR(BUTTON_NUM-1 downto 0); -- Codice prodotto
-            btn_ok_p_in        : in  std_logic; -- Tasto OK (conferma)
-            btn_c_p_in         : in  std_logic; -- Tasto C (cancella)
+            btn_num_in         : in  STD_LOGIC_VECTOR(BUTTON_NUM_BIT-1 downto 0); -- Codice prodotto
+            btn_ok_in        : in  std_logic; -- Tasto OK (conferma)
+            btn_c_in         : in  std_logic; -- Tasto C (cancella)
 
 
             -- Ingressi controllo
@@ -116,7 +116,7 @@ architecture Structural of vending_machine is
             --Uscite controllo
             update_credit_out : out std_logic;        --se è stato aggiornato il credito
             clear_credit_out : out std_logic;         --azzera il credito
-            add_sup_operation_out : out std_logic;    --seleziona somma o sottrazione
+            add_sub_operation_out : out std_logic;    --seleziona somma o sottrazione
             mux_sel_out : out std_logic;              --seleziona moneta o prezzo
             en_dispense_item_out : out std_logic;     --eroga se è 1
             en_change_out : out std_logic;            --dai resto se è 1
@@ -194,125 +194,125 @@ begin
 
     current_credit_out <= current_credit_sig;
 
-    FSM: finite_state_machine
+    FSM_INST: finite_state_machine
         generic map (
-            MAX_CREDIT => MAX_CREDIT,
-            BUTTON_NUM => BUTTON_NUM
+            MAX_CREDIT_BIT => MAX_CREDIT_BIT,
+            BUTTON_NUM_BIT => BUTTON_NUM_BIT
         )
         port map (
             CLK                     => CLK,
             areset_n                => areset_n,
 
-            coin_50c_p_in           => coin_50c_p,
-            coin_1e_p_in            => coin_1e_p,
-            coin_2e_p_in            => coin_2e_p,
+            coin_50c_in           => coin_50c_in,
+            coin_1e_in            => coin_1e_in,
+            coin_2e_in            => coin_2e_in,
 
-            btn_num_in              => btn_num,
-            btn_ok_p_in             => btn_ok_p,
-            btn_c_p_in              => btn_c_p,
+            btn_num_in              => btn_num_in,
+            btn_ok_in             => btn_ok_in,
+            btn_c_in              => btn_c_in,
 
             -- Ingressi controllo
-            credit_ok_in            => credit_ok_sig,
+            credit_ok_in            => credit_ok,
            
            
-            credit_insufficient_out => credit_insufficient_out,
+            credit_insufficient_out => credit_insufficient_out, 
 
             --Uscite controllo
-            update_credit_out       => fsm_update_credit_sig,             --se è stato aggiornato il credito
-            clear_credit_out        => fsm_clear_credit_sig,              --azzera il credito
-            add_sup_operation_out   => fsm_add_sup_operation_sig,         --seleziona somma o sottrazione
-            mux_sel_out             => fsm_mux_sel_sig,                   --seleziona moneta o prezzo
-            en_dispense_item_out    => fsm_en_dispense_item_sig,          --eroga se è 1
-            en_change_out           => fsm_en_change_sig                  --dai resto se è 1
+            update_credit_out       => fsm_update_credit,             --se è stato aggiornato il credito
+            clear_credit_out        => fsm_clear_credit,              --azzera il credito
+            add_sub_operation_out   => fsm_add_sub_operation,         --seleziona somma o sottrazione
+            mux_sel_out             => fsm_mux_sel,                   --seleziona moneta o prezzo
+            en_dispense_item_out    => fsm_en_dispense_item,          --eroga se è 1
+            en_change_out           => fsm_en_change                  --dai resto se è 1
     );
 
-    CREDIT_REGISTER : register_en_clr
+    CREDIT_REGISTER_INST : register_en_clr
         generic map (
-            DATA_WIDTH => MAX_CREDIT,
+            DATA_WIDTH => MAX_CREDIT_BIT,
             RESET_VAL  => (others => '0')
         )
         port map (
             clk      => CLK,
             areset_n => areset_n,
-            clr      => fsm_clear_credit_sig,
-            en       => fsm_update_credit_sig,
-            d        => adder_result_sig, --da controllare
-            q        => current_credit_sig  --da controllare
+            clr      => fsm_clear_credit,
+            en       => fsm_update_credit,
+            d        => adder_result,
+            q        => current_credit  
         );
 
 
-    ADDER_SUB : adder_subtractor
+    ADDER_SUB_INST : adder_subtractor  
         generic map ( 
-            DATA_WIDTH => MAX_CREDIT --9
+            DATA_WIDTH => MAX_CREDIT_BIT --9
         )
         port map(
-            A         => current_credit_sig  
-            B         => adder_B_sig
-            operation => fsm_add_sub_operation_sig,
-            result    => adder_result_sig,
-            Cout      => open --da controllare
+            A         => current_credit  
+            B         => adder_B
+            operation => fsm_add_sub_operation,
+            result    => adder_result,
+            Cout      => open 
         );
     
-    ROM : ROM_price 
+    ROM_INST : ROM_price 
         generic map(
-            DATA_WIDTH => MAX_CREDIT, --9 -- fino a 500 centesimi
-            BUTTON_NUM => BUTTON_NUM  -- pulsanti 0..9
+            DATA_WIDTH => MAX_CREDIT_BIT, 
+            BUTTON_NUM => BUTTON_NUM_BIT  -- pulsanti 0..9
         )
         port map (
-            button_i => btn_num,
-            price_o  => price_val_sig
+            button_i => btn_num_in,
+            price_o  => price_val
         );
 
-    MUX_ADDER_IN : mux_2x1
+    MUX_ADDER_IN_INST : mux_2x1
         generic map(
-            DATA_WIDTH => MAX_CREDIT  --9
+            DATA_WIDTH => MAX_CREDIT_BIT  --9
         )
         port map (
-            in_0   =>  coin_val_sig,   --Moneta
-            in_1   =>  price_val_sig,--Prezzo
+            in_0   =>  coin_val,   --Moneta
+            in_1   =>  price_val,--Prezzo
             sel    =>  fsm_mux_sel,
-            m_out  =>  adder_b_sig
+            m_out  =>  adder_b
         );
 
-    ENCODER : coin_encoder 
+    ENCODER_INST : coin_encoder 
         generic map(
-            DATA_WIDTH => MAX_CREDIT --9
+            DATA_WIDTH => MAX_CREDIT_BIT --9
         )
         port map(
-            coin_50c_p => coin_50c_p,
-            coin_1e_p  => coin_1e_p,
-            coin_2e_p  => coin_2e_p,
-            coin_val   => coin_val_sig
+            coin_50c_p => coin_50c_in,
+            coin_1e_p  => coin_1e_in,
+            coin_2e_p  => coin_2e_in,
+            coin_val   => coin_val
         );
     
 
-    COMPARATOR: comparator_ge 
+    COMPARATOR_INST: comparator_ge 
         generic map (
-            DATA_WIDTH => MAX_CREDIT --9
+            DATA_WIDTH => MAX_CREDIT_BIT --9
         )
         port map (
-            A       =>  current_credit_sig,   -- Es: Credito Attuale
-            B       =>  price_val_sig,         -- Es: Prezzo
-            A_ge_B  =>  credit_ok_sig
+            A       =>  current_credit,   -- Es: Credito Attuale
+            B       =>  price_val,         -- Es: Prezzo
+            A_ge_B  =>  credit_ok
         );
     
-    DISPENSE_OUT: output_gate 
+    DISPENSE_OUT_INST: output_gate 
         generic map (
-            DATA_WIDTH => MAX_CREDIT     --9
+            DATA_WIDTH => MAX_CREDIT_BIT     --9
         )
         port map(
-            data_in  =>  price_val_sig,
-            en       =>  fsm_en_dispense_item_sig,
+            data_in  =>  price_val,
+            en       =>  fsm_en_dispense_item,
             data_out =>  dispense_item_out
         );
 
-    CHANGE_OUT: output_gate 
+    CHANGE_OUT_INST: output_gate 
         generic map (
-            DATA_WIDTH => MAX_CREDIT     --9
+            DATA_WIDTH => MAX_CREDIT_BIT     --9
         )
         port map(
-            data_in  =>  current_credit_sig,
-            en       =>  fsm_en_change_out_sig, 
+            data_in  =>  current_credit,
+            en       =>  fsm_en_change_out, 
             data_out =>  dispense_change_out
         );
 

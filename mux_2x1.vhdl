@@ -17,6 +17,6 @@ end entity;
 
 architecture Behavioural of mux_2x1 is
 begin
-    m_out <= in_1 when sel = '1' else in_0;
+    m_out <= in_1 when sel = '1' else in_0; --Moneta sel=0,  sel=1
 
 end architecture;
