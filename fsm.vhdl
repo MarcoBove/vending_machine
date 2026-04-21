@@ -5,7 +5,6 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity finite_state_machine is
     generic (
-        -- Range massimo credito (es. fino a 500c = 5 euro)
         MAX_CREDIT_BIT : integer := 9;
         BUTTON_NUM_BIT : integer := 4
     );
@@ -77,17 +76,12 @@ architecture Behavioral of finite_state_machine is
     
     signal current_state, next_state : state_type;
 
-    -- Comparator Flags registrate 
-    -- Da usare come ingressi per la FSM combinatoria
-    signal sig_credit_is_zero  : std_logic; -- '1' se credito = 0   
-    -- non lo so se metterlo perchè si puo mettere come ingresso oppure gestire con il tasto C
-
 begin
     -------------------------------------------------------------------------
     -- PROCESSO 1: Logica Combinatoria del Prossimo Stato 
     -------------------------------------------------------------------------
 
-    p_next_state : process(current_state, sig_credit_is_zero,
+    p_next_state : process(current_state,
                            btn_ok_in, btn_c_in, 
                            coin_50c_in, coin_1e_in, coin_2e_in, btn_num_in, credit_ok_in)
     begin
@@ -102,6 +96,7 @@ begin
                     next_state <= S_WAIT;
                 elsif(coin_50c_in = '1' or coin_1e_in = '1' or coin_2e_in = '1') then
                     next_state <= S_WAIT;
+                    --serve solo questo
                 elsif(btn_num_in = "0000" ) or (btn_num_in="0001") or (btn_num_in="0010") or (btn_num_in="0011") then   --qua bisogna vedere se metto un codice con valore 0 se passare a sel_product secondo me si
                     next_state <= S_SELECT_PRODUCT;
                 elsif(btn_ok_in = '1') then
@@ -112,8 +107,6 @@ begin
                 if (btn_ok_in = '1' and credit_ok_in = '0') then
                     next_state <= S_WAIT;
                 elsif (btn_c_in = '1') then
-                    next_state <= S_WAIT;
-                elsif (sig_credit_is_zero = '1') then
                     next_state <= S_WAIT;
                 end if;
 
@@ -126,7 +119,7 @@ begin
     -- PROCESSO 2: Logica Combinatoria delle Uscite (Output logic)
     -------------------------------------------------------------------------
 
-    p_outputs_mealy : process(current_state, sig_credit_is_zero,
+    p_outputs_mealy : process(current_state, 
                            btn_ok_in, btn_c_in, 
                            coin_50c_in, coin_1e_in, coin_2e_in, btn_num_in, credit_ok_in)
     begin
@@ -145,6 +138,13 @@ begin
             when S_WAIT =>
                 if (coin_50c_in = '1' or coin_1e_in = '1' or coin_2e_in = '1') then
                     update_credit_out <= '1';
+                    mux_sel_out <= '0';
+                    add_sub_operation_out <= '0';
+                end if;
+
+                if (btc_c_in = '1') then
+                    en_change_out <= '1';
+                    clear_credit_out <= '1';
                 end if;
 
             when S_SELECT_PRODUCT =>
@@ -156,11 +156,8 @@ begin
                     en_dispense_item_out <= '1';
                     add_sub_operation_out <= '1';
                     mux_sel_out <= '1';
-                    if(sig_credit_is_zero = '1') then
-                        en_dispense_change_out  <= '1';
-                        clear_credit_out <= '1';
-                    end if;
                 end if;
+
             when others =>
                     null;    --questo non lo so                
         end case;
@@ -175,7 +172,6 @@ begin
         -- Reset asincrono attivo basso 
         if areset_n = '0' then
             current_state      <= S_WAIT;
-            sig_credit_is_zero <= '1'; -- Default
             
         elsif rising_edge(CLK) then
             -- Aggiornamento dello stato dell'automa
